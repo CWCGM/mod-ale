@@ -946,6 +946,33 @@ void ALE::OnPlayerModifyHealReceived(Player* player, Unit* target, uint32& heal,
     CleanUpStack(4);
 }
 
+float ALE::OnPlayerUpdateMaxPower(Player* player, uint32 power, float value)
+{
+    START_HOOK_WITH_RETVAL(PLAYER_EVENT_ON_UPDATE_MAX_POWER, value);
+    Push(player);
+    Push(power);
+    Push(value);
+    int valueIndex = lua_gettop(L);
+    int n = SetupStack(PlayerEventBindings, key, 3);
+
+    float result = value;
+    while (n > 0)
+    {
+        int r = CallOneFunction(n--, 3, 1);
+
+        if (lua_isnumber(L, r))
+        {
+            result = CHECKVAL<float>(L, r);
+            ReplaceArgument(result, valueIndex);
+        }
+
+        lua_pop(L, 1);
+    }
+
+    CleanUpStack(3);
+    return result;
+}
+
 uint32 ALE::OnPlayerDealDamage(Player* player, Unit* target, uint32 damage, DamageEffectType damagetype)
 {
     START_HOOK_WITH_RETVAL(PLAYER_EVENT_ON_DEAL_DAMAGE, damage);

@@ -644,12 +644,21 @@ public:
         PLAYERHOOK_ON_BEFORE_UPDATE_SKILL,
         PLAYERHOOK_ON_UPDATE_SKILL,
         PLAYERHOOK_CAN_RESURRECT,
-        PLAYERHOOK_ON_PLAYER_RELEASED_GHOST
+        PLAYERHOOK_ON_PLAYER_RELEASED_GHOST,
+        PLAYERHOOK_ON_AFTER_UPDATE_MAX_POWER
     }) { }
 
     void OnPlayerResurrect(Player* player, float /*restore_percent*/, bool& /*applySickness*/) override
     {
         sALE->OnResurrect(player);
+    }
+
+    void OnPlayerAfterUpdateMaxPower(Player* player, Powers& power, float& value) override
+    {
+        if (!player)
+            return;
+
+        value = sALE->OnPlayerUpdateMaxPower(player, static_cast<uint32>(power), value);
     }
 
     bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 lang, std::string& msg) override
@@ -1113,7 +1122,9 @@ public:
         WORLDHOOK_ON_STARTUP,
         WORLDHOOK_ON_SHUTDOWN,
         WORLDHOOK_ON_AFTER_UNLOAD_ALL_MAPS,
-        WORLDHOOK_ON_BEFORE_WORLD_INITIALIZED
+        WORLDHOOK_ON_BEFORE_WORLD_INITIALIZED,
+        WORLDHOOK_ON_AFTER_LOAD_DBC_STORE,
+        WORLDHOOK_ON_AFTER_LOAD_DATA_TABLE
     }) { }
 
     void OnOpenStateChange(bool open) override
@@ -1129,6 +1140,7 @@ public:
             ///- Initialize Lua Engine
             LOG_INFO("ALE", "Initialize ALE Lua Engine...");
             ALE::Initialize();
+            sALE->RunScripts();
         }
 
         sALE->OnConfigLoad(reload, true);
@@ -1169,11 +1181,18 @@ public:
         ALE::Uninitialize();
     }
 
+    void OnAfterLoadDBCStore(std::string const& storeName) override
+    {
+        sALE->OnDatabaseTableLoad(storeName);
+    }
+
+    void OnAfterLoadDataTable(std::string const& tableName) override
+    {
+        sALE->OnDatabaseTableLoad(tableName);
+    }
+
     void OnBeforeWorldInitialized() override
     {
-        ///- Run ALE scripts.
-        // in multithread foreach: run scripts
-        sALE->RunScripts();
         sALE->OnConfigLoad(false, false); // Must be done after ALE is initialized and scripts have run.
     }
 };

@@ -205,6 +205,7 @@ ItemEventBindings(NULL),
 ItemGossipBindings(NULL),
 PlayerGossipBindings(NULL),
 MapEventBindings(NULL),
+DatabaseEventBindings(NULL),
 InstanceEventBindings(NULL),
 TicketEventBindings(NULL),
 SpellEventBindings(NULL),
@@ -310,6 +311,7 @@ void ALE::CreateBindStores()
     ItemGossipBindings       = new BindingMap< EntryKey<Hooks::GossipEvents> >(L);
     PlayerGossipBindings     = new BindingMap< EntryKey<Hooks::GossipEvents> >(L);
     MapEventBindings         = new BindingMap< EntryKey<Hooks::InstanceEvents> >(L);
+    DatabaseEventBindings    = new BindingMap< EntryKey<Hooks::DatabaseEvents> >(L);
     InstanceEventBindings    = new BindingMap< EntryKey<Hooks::InstanceEvents> >(L);
     SpellEventBindings       = new BindingMap< EntryKey<Hooks::SpellEvents> >(L);
 
@@ -335,6 +337,7 @@ void ALE::DestroyBindStores()
     delete PlayerGossipBindings;
     delete BGEventBindings;
     delete MapEventBindings;
+    delete DatabaseEventBindings;
     delete InstanceEventBindings;
     delete SpellEventBindings;
 
@@ -357,6 +360,7 @@ void ALE::DestroyBindStores()
     PlayerGossipBindings = NULL;
     BGEventBindings = NULL;
     MapEventBindings = NULL;
+    DatabaseEventBindings = NULL;
     InstanceEventBindings = NULL;
     SpellEventBindings = NULL;
 
@@ -1482,6 +1486,16 @@ int ALE::Register(lua_State* L, uint8 regtype, uint32 entry, ObjectGuid guid, ui
                 auto key = EntryKey<Hooks::GossipEvents>((Hooks::GossipEvents)event_id, entry);
                 bindingID = PlayerGossipBindings->Insert(key, functionRef, shots);
                 createCancelCallback(L, bindingID, PlayerGossipBindings);
+                return 1; // Stack: callback
+            }
+            break;
+
+        case Hooks::REGTYPE_DATABASE:
+            if (event_id < Hooks::DATABASE_EVENT_COUNT)
+            {
+                auto key = EntryKey<Hooks::DatabaseEvents>((Hooks::DatabaseEvents)event_id, entry);
+                bindingID = DatabaseEventBindings->Insert(key, functionRef, shots);
+                createCancelCallback(L, bindingID, DatabaseEventBindings);
                 return 1; // Stack: callback
             }
             break;

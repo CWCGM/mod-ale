@@ -56,6 +56,7 @@ extern "C"
 // DBCStores includes
 #include "GemPropertiesEntryMethods.h"
 #include "SpellEntryMethods.h"
+#include "Forge/ForgeRegistry.h"
 
 luaL_Reg GlobalMethods[] =
 {
@@ -128,6 +129,8 @@ luaL_Reg GlobalMethods[] =
     { "GetPlayerGUID", &LuaGlobalFunctions::GetPlayerGUID },
     { "GetItemGUID", &LuaGlobalFunctions::GetItemGUID },
     { "GetItemTemplate", &LuaGlobalFunctions::GetItemTemplate },
+    { "GetPlayerClassLevelInfo", &LuaGlobalFunctions::GetPlayerClassLevelInfo },
+    { "RegisterDatabaseEvent", &LuaGlobalFunctions::RegisterDatabaseEvent },
     { "GetObjectGUID", &LuaGlobalFunctions::GetObjectGUID },
     { "GetUnitGUID", &LuaGlobalFunctions::GetUnitGUID },
     { "GetGUIDLow", &LuaGlobalFunctions::GetGUIDLow },
@@ -359,6 +362,8 @@ ALERegister<Unit> UnitMethods[] =
     { "SetMaxHealth", &LuaUnit::SetMaxHealth },
     { "SetPower", &LuaUnit::SetPower },
     { "SetMaxPower", &LuaUnit::SetMaxPower },
+    { "GetCreateMana", &LuaUnit::GetCreateMana },
+    { "SetCreateMana", &LuaUnit::SetCreateMana },
     { "SetPowerType", &LuaUnit::SetPowerType },
     { "SetDisplayId", &LuaUnit::SetDisplayId },
     { "SetNativeDisplayId", &LuaUnit::SetNativeDisplayId },
@@ -1374,6 +1379,153 @@ ALERegister<Item> ItemMethods[] =
     { NULL, NULL }
 };
 
+ALERegister<ForgeGtRegenMPPerSpt> ForgeGtRegenMPPerSptMethods[] =
+{
+    { "GetNumRows", &LuaForgeGtRegenMPPerSpt::GetNumRows },
+    { "GetByID", &LuaForgeGtRegenMPPerSpt::GetByID },
+    { "GetByClassLevel", &LuaForgeGtRegenMPPerSpt::GetByClassLevel },
+
+    { nullptr, nullptr }
+};
+
+ALERegister<ForgeGtRegenMPPerSptRow> ForgeGtRegenMPPerSptRowMethods[] =
+{
+    { "GetID", &LuaForgeGtRegenMPPerSptRow::GetID },
+    { "GetData", &LuaForgeGtRegenMPPerSptRow::GetData },
+    { "SetData", &LuaForgeGtRegenMPPerSptRow::SetData },
+    { "push", &LuaForgeGtRegenMPPerSptRow::Push },
+
+    { nullptr, nullptr }
+};
+
+ALERegister<ForgeItemTemplate> ForgeItemTemplateMethods[] =
+{
+    { "GetNumRows", &LuaForgeItemTemplate::GetNumRows },
+    { "GetByID", &LuaForgeItemTemplate::GetByID },
+    { "ForEach", &LuaForgeItemTemplate::ForEach },
+    { "ForEachOfClass", &LuaForgeItemTemplate::ForEachOfClass },
+
+    { nullptr, nullptr }
+};
+
+ALERegister<ForgeItemTemplateRow> ForgeItemTemplateRowMethods[] =
+{
+    { "GetEntry", &LuaForgeItemTemplateRow::GetEntry },
+    { "GetName", &LuaForgeItemTemplateRow::GetName },
+    { "SetName", &LuaForgeItemTemplateRow::SetName },
+    { "GetDescription", &LuaForgeItemTemplateRow::GetDescription },
+    { "SetDescription", &LuaForgeItemTemplateRow::SetDescription },
+    { "GetClass", &LuaForgeItemTemplateRow::GetClass },
+    { "SetClass", &LuaForgeItemTemplateRow::SetClass },
+    { "GetSubClass", &LuaForgeItemTemplateRow::GetSubClass },
+    { "SetSubClass", &LuaForgeItemTemplateRow::SetSubClass },
+    { "GetQuality", &LuaForgeItemTemplateRow::GetQuality },
+    { "SetQuality", &LuaForgeItemTemplateRow::SetQuality },
+    { "GetDisplayInfoID", &LuaForgeItemTemplateRow::GetDisplayInfoID },
+    { "SetDisplayInfoID", &LuaForgeItemTemplateRow::SetDisplayInfoID },
+    { "GetInventoryType", &LuaForgeItemTemplateRow::GetInventoryType },
+    { "SetInventoryType", &LuaForgeItemTemplateRow::SetInventoryType },
+    { "GetFlags", &LuaForgeItemTemplateRow::GetFlags },
+    { "SetFlags", &LuaForgeItemTemplateRow::SetFlags },
+    { "GetBuyCount", &LuaForgeItemTemplateRow::GetBuyCount },
+    { "SetBuyCount", &LuaForgeItemTemplateRow::SetBuyCount },
+    { "GetBuyPrice", &LuaForgeItemTemplateRow::GetBuyPrice },
+    { "SetBuyPrice", &LuaForgeItemTemplateRow::SetBuyPrice },
+    { "GetSellPrice", &LuaForgeItemTemplateRow::GetSellPrice },
+    { "SetSellPrice", &LuaForgeItemTemplateRow::SetSellPrice },
+    { "GetAllowableClass", &LuaForgeItemTemplateRow::GetAllowableClass },
+    { "SetAllowableClass", &LuaForgeItemTemplateRow::SetAllowableClass },
+    { "GetAllowableRace", &LuaForgeItemTemplateRow::GetAllowableRace },
+    { "SetAllowableRace", &LuaForgeItemTemplateRow::SetAllowableRace },
+    { "GetItemLevel", &LuaForgeItemTemplateRow::GetItemLevel },
+    { "SetItemLevel", &LuaForgeItemTemplateRow::SetItemLevel },
+    { "GetRequiredLevel", &LuaForgeItemTemplateRow::GetRequiredLevel },
+    { "SetRequiredLevel", &LuaForgeItemTemplateRow::SetRequiredLevel },
+    { "GetRequiredSkill", &LuaForgeItemTemplateRow::GetRequiredSkill },
+    { "SetRequiredSkill", &LuaForgeItemTemplateRow::SetRequiredSkill },
+    { "GetRequiredSkillRank", &LuaForgeItemTemplateRow::GetRequiredSkillRank },
+    { "SetRequiredSkillRank", &LuaForgeItemTemplateRow::SetRequiredSkillRank },
+    { "GetRequiredSpell", &LuaForgeItemTemplateRow::GetRequiredSpell },
+    { "SetRequiredSpell", &LuaForgeItemTemplateRow::SetRequiredSpell },
+    { "GetMaxCount", &LuaForgeItemTemplateRow::GetMaxCount },
+    { "SetMaxCount", &LuaForgeItemTemplateRow::SetMaxCount },
+    { "GetStackable", &LuaForgeItemTemplateRow::GetStackable },
+    { "SetStackable", &LuaForgeItemTemplateRow::SetStackable },
+    { "GetContainerSlots", &LuaForgeItemTemplateRow::GetContainerSlots },
+    { "SetContainerSlots", &LuaForgeItemTemplateRow::SetContainerSlots },
+    { "GetArmor", &LuaForgeItemTemplateRow::GetArmor },
+    { "SetArmor", &LuaForgeItemTemplateRow::SetArmor },
+    { "GetHolyRes", &LuaForgeItemTemplateRow::GetHolyRes },
+    { "SetHolyRes", &LuaForgeItemTemplateRow::SetHolyRes },
+    { "GetFireRes", &LuaForgeItemTemplateRow::GetFireRes },
+    { "SetFireRes", &LuaForgeItemTemplateRow::SetFireRes },
+    { "GetNatureRes", &LuaForgeItemTemplateRow::GetNatureRes },
+    { "SetNatureRes", &LuaForgeItemTemplateRow::SetNatureRes },
+    { "GetFrostRes", &LuaForgeItemTemplateRow::GetFrostRes },
+    { "SetFrostRes", &LuaForgeItemTemplateRow::SetFrostRes },
+    { "GetShadowRes", &LuaForgeItemTemplateRow::GetShadowRes },
+    { "SetShadowRes", &LuaForgeItemTemplateRow::SetShadowRes },
+    { "GetArcaneRes", &LuaForgeItemTemplateRow::GetArcaneRes },
+    { "SetArcaneRes", &LuaForgeItemTemplateRow::SetArcaneRes },
+    { "GetDelay", &LuaForgeItemTemplateRow::GetDelay },
+    { "SetDelay", &LuaForgeItemTemplateRow::SetDelay },
+    { "GetAmmoType", &LuaForgeItemTemplateRow::GetAmmoType },
+    { "SetAmmoType", &LuaForgeItemTemplateRow::SetAmmoType },
+    { "GetBonding", &LuaForgeItemTemplateRow::GetBonding },
+    { "SetBonding", &LuaForgeItemTemplateRow::SetBonding },
+    { "GetPageText", &LuaForgeItemTemplateRow::GetPageText },
+    { "SetPageText", &LuaForgeItemTemplateRow::SetPageText },
+    { "GetRequiredHonorRank", &LuaForgeItemTemplateRow::GetRequiredHonorRank },
+    { "SetRequiredHonorRank", &LuaForgeItemTemplateRow::SetRequiredHonorRank },
+    { "GetRequiredCityRank", &LuaForgeItemTemplateRow::GetRequiredCityRank },
+    { "SetRequiredCityRank", &LuaForgeItemTemplateRow::SetRequiredCityRank },
+    { "GetRequiredReputationFaction", &LuaForgeItemTemplateRow::GetRequiredReputationFaction },
+    { "SetRequiredReputationFaction", &LuaForgeItemTemplateRow::SetRequiredReputationFaction },
+    { "GetRequiredReputationRank", &LuaForgeItemTemplateRow::GetRequiredReputationRank },
+    { "SetRequiredReputationRank", &LuaForgeItemTemplateRow::SetRequiredReputationRank },
+    { "GetStat", &LuaForgeItemTemplateRow::GetStat },
+    { "SetStat", &LuaForgeItemTemplateRow::SetStat },
+    { "GetStatsCount", &LuaForgeItemTemplateRow::GetStatsCount },
+    { "SetStatsCount", &LuaForgeItemTemplateRow::SetStatsCount },
+    { "GetDamage", &LuaForgeItemTemplateRow::GetDamage },
+    { "SetDamage", &LuaForgeItemTemplateRow::SetDamage },
+    { "GetSpell", &LuaForgeItemTemplateRow::GetSpell },
+    { "SetSpell", &LuaForgeItemTemplateRow::SetSpell },
+    { "push", &LuaForgeItemTemplateRow::Push },
+
+    { nullptr, nullptr }
+};
+
+ALERegister<ForgeTrainer> ForgeTrainerMethods[] =
+{
+    { "GetNumRows", &LuaForgeTrainer::GetNumRows },
+    { "ForEach", &LuaForgeTrainer::ForEach },
+    { "ForEachOfClass", &LuaForgeTrainer::ForEachOfClass },
+
+    { nullptr, nullptr }
+};
+
+ALERegister<ForgeTrainerSpellRow> ForgeTrainerSpellRowMethods[] =
+{
+    { "GetTrainerId", &LuaForgeTrainerSpellRow::GetTrainerId },
+    { "GetTrainerType", &LuaForgeTrainerSpellRow::GetTrainerType },
+    { "GetTrainerRequirement", &LuaForgeTrainerSpellRow::GetTrainerRequirement },
+    { "GetSpellId", &LuaForgeTrainerSpellRow::GetSpellId },
+    { "GetMoneyCost", &LuaForgeTrainerSpellRow::GetMoneyCost },
+    { "SetMoneyCost", &LuaForgeTrainerSpellRow::SetMoneyCost },
+    { "GetReqSkillLine", &LuaForgeTrainerSpellRow::GetReqSkillLine },
+    { "SetReqSkillLine", &LuaForgeTrainerSpellRow::SetReqSkillLine },
+    { "GetReqSkillRank", &LuaForgeTrainerSpellRow::GetReqSkillRank },
+    { "SetReqSkillRank", &LuaForgeTrainerSpellRow::SetReqSkillRank },
+    { "GetReqAbility", &LuaForgeTrainerSpellRow::GetReqAbility },
+    { "SetReqAbility", &LuaForgeTrainerSpellRow::SetReqAbility },
+    { "GetReqLevel", &LuaForgeTrainerSpellRow::GetReqLevel },
+    { "SetReqLevel", &LuaForgeTrainerSpellRow::SetReqLevel },
+    { "push", &LuaForgeTrainerSpellRow::Push },
+
+    { nullptr, nullptr }
+};
+
 ALERegister<ItemTemplate> ItemTemplateMethods[] =
 {
     { "GetItemId", &LuaItemTemplate::GetItemId },
@@ -2268,6 +2420,26 @@ void RegisterFunctions(ALE* E)
     ALETemplate<Item>::Register(E, "Item");
     ALETemplate<Item>::SetMethods(E, ObjectMethods);
     ALETemplate<Item>::SetMethods(E, ItemMethods);
+
+    // Rows are handed out by value and collected by Lua; the store is a
+    // singleton the engine owns, so it must not be.
+    ALETemplate<ForgeGtRegenMPPerSpt>::Register(E, "ForgeGtRegenMPPerSpt");
+    ALETemplate<ForgeGtRegenMPPerSpt>::SetMethods(E, ForgeGtRegenMPPerSptMethods);
+
+    ALETemplate<ForgeGtRegenMPPerSptRow>::Register(E, "ForgeGtRegenMPPerSptRow", true);
+    ALETemplate<ForgeGtRegenMPPerSptRow>::SetMethods(E, ForgeGtRegenMPPerSptRowMethods);
+
+    ALETemplate<ForgeItemTemplate>::Register(E, "ForgeItemTemplate");
+    ALETemplate<ForgeItemTemplate>::SetMethods(E, ForgeItemTemplateMethods);
+
+    ALETemplate<ForgeItemTemplateRow>::Register(E, "ForgeItemTemplateRow", true);
+    ALETemplate<ForgeItemTemplateRow>::SetMethods(E, ForgeItemTemplateRowMethods);
+
+    ALETemplate<ForgeTrainer>::Register(E, "ForgeTrainer");
+    ALETemplate<ForgeTrainer>::SetMethods(E, ForgeTrainerMethods);
+
+    ALETemplate<ForgeTrainerSpellRow>::Register(E, "ForgeTrainerSpellRow", true);
+    ALETemplate<ForgeTrainerSpellRow>::SetMethods(E, ForgeTrainerSpellRowMethods);
 
     ALETemplate<ItemTemplate>::Register(E, "ItemTemplate");
     ALETemplate<ItemTemplate>::SetMethods(E, ItemTemplateMethods);

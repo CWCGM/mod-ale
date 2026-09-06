@@ -14,6 +14,7 @@
 #include "GameTime.h"
 #include "SharedDefines.h"
 #include "OutdoorPvPMgr.h"
+#include "ForgeRegistry.h"
 #include "../../../../src/server/scripts/OutdoorPvP/OutdoorPvPNA.h"
 
 
@@ -367,6 +368,31 @@ namespace LuaGlobalFunctions
     * @param uint32 itemID : the item entry ID from `item_template` to look up
     * @return [ItemTemplate] itemTemplate
     */
+    /**
+     * Returns the base health and mana of a class at a given level, as the core reads them from `player_classlevelstats`.
+     *
+     * @param uint32 class : class id, 1 = warrior ... 11 = druid
+     * @param uint32 level : requested level
+     *
+     * @return uint32 baseHealth : nil if the class or level is invalid
+     * @return uint32 baseMana
+     */
+    int GetPlayerClassLevelInfo(lua_State* L)
+    {
+        uint32 playerClass = ALE::CHECKVAL<uint32>(L, 1);
+        uint32 level = ALE::CHECKVAL<uint32>(L, 2);
+
+        if (playerClass < 1 || playerClass >= MAX_CLASSES || !level)
+            return 0;
+
+        PlayerClassLevelInfo info;
+        eObjectMgr->GetPlayerClassLevelInfo(playerClass, static_cast<uint8>(level), &info);
+
+        ALE::Push(L, info.basehealth);
+        ALE::Push(L, info.basemana);
+        return 2;
+    }
+
     int GetItemTemplate(lua_State* L)
     {
         uint32 entry = ALE::CHECKVAL<uint32>(L, 1);
@@ -1203,6 +1229,49 @@ namespace LuaGlobalFunctions
     }
 
     /**
+     * Registers a handler for a data store event, keyed by table name.
+     *
+     * <pre>
+     * enum DatabaseEvents
+     * {
+     *     ON_CUSTOM_DATABASE_TABLE_LOAD = 1,   // (event, table, store)
+     * };
+     * </pre>
+     *
+     * @param uint32 event : event id
+     * @param string table : table name, case insensitive
+     * @param function handler
+     * @param uint32 shots = 0 : how many times to call, 0 for infinite
+     */
+    int RegisterDatabaseEvent(lua_State* L)
+    {
+        uint32 ev = ALE::CHECKVAL<uint32>(L, 1);
+        std::string table = ALE::CHECKVAL<std::string>(L, 2);
+        luaL_checktype(L, 3, LUA_TFUNCTION);
+        uint32 shots = ALE::CHECKVAL<uint32>(L, 4, 0);
+
+        // Named rather than numbered, so a typo says which table is unknown
+        // instead of silently registering on nothing.
+        Forge::TableInfo const* info = Forge::FindTable(table);
+        if (!info)
+        {
+            luaL_argerror(L, 2, "unknown data table");
+            return 0;
+        }
+
+        lua_pushvalue(L, 3);
+        int functionRef = luaL_ref(L, LUA_REGISTRYINDEX);
+        if (functionRef < 0)
+        {
+            luaL_argerror(L, 3, "unable to make a ref to function");
+            return 0;
+        }
+
+        return ALE::GetALE(L)->Register(L, Hooks::REGTYPE_DATABASE, info->id,
+            ObjectGuid(), 0, ev, functionRef, shots);
+    }
+
+    /**
      * Registers a [Creature] event handler for a *single* [Creature].
      *
      * <pre>
@@ -1488,9 +1557,18 @@ namespace LuaGlobalFunctions
     {
         const char* query = ALE::CHECKVAL<const char*>(L, 1);
 
+        // FormatQuery returns by value: assigning only its c_str() would
+        // leave query pointing into a temporary destroyed at the semicolon,
+        // and the query below would read freed memory. The string has to
+        // outlive the call.
+        std::string formatted;
+
         int numArgs = lua_gettop(L);
         if (numArgs > 1)
-            query = ALE::FormatQuery(L, query).c_str();
+        {
+            formatted = ALE::FormatQuery(L, query);
+            query = formatted.c_str();
+        }
 
         ALEQuery result = WorldDatabase.Query(query);
         if (result)
@@ -1541,9 +1619,18 @@ namespace LuaGlobalFunctions
     {
         const char* query = ALE::CHECKVAL<const char*>(L, 1);
 
+        // FormatQuery returns by value: assigning only its c_str() would
+        // leave query pointing into a temporary destroyed at the semicolon,
+        // and the query below would read freed memory. The string has to
+        // outlive the call.
+        std::string formatted;
+
         int numArgs = lua_gettop(L);
         if (numArgs > 1)
-            query = ALE::FormatQuery(L, query).c_str();
+        {
+            formatted = ALE::FormatQuery(L, query);
+            query = formatted.c_str();
+        }
 
         WorldDatabase.Execute(query);
         return 0;
@@ -1565,9 +1652,18 @@ namespace LuaGlobalFunctions
     {
         const char* query = ALE::CHECKVAL<const char*>(L, 1);
 
+        // FormatQuery returns by value: assigning only its c_str() would
+        // leave query pointing into a temporary destroyed at the semicolon,
+        // and the query below would read freed memory. The string has to
+        // outlive the call.
+        std::string formatted;
+
         int numArgs = lua_gettop(L);
         if (numArgs > 1)
-            query = ALE::FormatQuery(L, query).c_str();
+        {
+            formatted = ALE::FormatQuery(L, query);
+            query = formatted.c_str();
+        }
 
         QueryResult result = CharacterDatabase.Query(query);
         if (result)
@@ -1611,9 +1707,18 @@ namespace LuaGlobalFunctions
     {
         const char* query = ALE::CHECKVAL<const char*>(L, 1);
 
+        // FormatQuery returns by value: assigning only its c_str() would
+        // leave query pointing into a temporary destroyed at the semicolon,
+        // and the query below would read freed memory. The string has to
+        // outlive the call.
+        std::string formatted;
+
         int numArgs = lua_gettop(L);
         if (numArgs > 1)
-            query = ALE::FormatQuery(L, query).c_str();
+        {
+            formatted = ALE::FormatQuery(L, query);
+            query = formatted.c_str();
+        }
 
         CharacterDatabase.Execute(query);
         return 0;
@@ -1635,9 +1740,18 @@ namespace LuaGlobalFunctions
     {
         const char* query = ALE::CHECKVAL<const char*>(L, 1);
 
+        // FormatQuery returns by value: assigning only its c_str() would
+        // leave query pointing into a temporary destroyed at the semicolon,
+        // and the query below would read freed memory. The string has to
+        // outlive the call.
+        std::string formatted;
+
         int numArgs = lua_gettop(L);
         if (numArgs > 1)
-            query = ALE::FormatQuery(L, query).c_str();
+        {
+            formatted = ALE::FormatQuery(L, query);
+            query = formatted.c_str();
+        }
 
         QueryResult result = LoginDatabase.Query(query);
         if (result)
@@ -1680,10 +1794,14 @@ namespace LuaGlobalFunctions
     int AuthDBExecute(lua_State* L)
     {
         const char* query = ALE::CHECKVAL<const char*>(L, 1);
+        std::string formatted;
 
         int numArgs = lua_gettop(L);
         if (numArgs > 1)
-            query = ALE::FormatQuery(L, query).c_str();
+        {
+            formatted = ALE::FormatQuery(L, query);
+            query = formatted.c_str();
+        }
             
         LoginDatabase.Execute(query);
         return 0;

@@ -1657,6 +1657,35 @@ namespace LuaUnit
     }
 
     /**
+     * Returns the [Unit]'s base mana, before the Intellect bonus and any
+     * modifier.
+     *
+     * @return uint32 baseMana
+     */
+    int GetCreateMana(lua_State* L, Unit* unit)
+    {
+        ALE::Push(L, unit->GetCreateMana());
+        return 1;
+    }
+
+    /**
+     * Sets the [Unit]'s base mana and recomputes its maximum mana.
+     *
+     * @param uint32 baseMana
+     */
+    int SetCreateMana(lua_State* L, Unit* unit)
+    {
+        uint32 amt = ALE::CHECKVAL<uint32>(L, 2);
+
+        unit->SetCreateMana(amt);
+
+        if (Player* player = unit->ToPlayer())
+            player->UpdateMaxPower(POWER_MANA);
+
+        return 0;
+    }
+
+    /**
      * Sets the [Unit]'s power type.
      *
      *     enum Powers

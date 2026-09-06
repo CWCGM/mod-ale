@@ -256,6 +256,7 @@ public:
     BindingMap< EntryKey<Hooks::GossipEvents> >*        ItemGossipBindings;
     BindingMap< EntryKey<Hooks::GossipEvents> >*        PlayerGossipBindings;
     BindingMap< EntryKey<Hooks::InstanceEvents> >*      MapEventBindings;
+    BindingMap< EntryKey<Hooks::DatabaseEvents> >*     DatabaseEventBindings;
     BindingMap< EntryKey<Hooks::InstanceEvents> >*      InstanceEventBindings;
     BindingMap< EventKey<Hooks::TicketEvents> >*        TicketEventBindings;
     BindingMap< EntryKey<Hooks::SpellEvents> >*         SpellEventBindings;
@@ -512,6 +513,10 @@ public:
     void OnPlayerModifySpellDamageTaken(Player* player, Unit* target, int32& damage, SpellInfo const* spellInfo);
     void OnPlayerModifyHealReceived(Player* player, Unit* target, uint32& heal, SpellInfo const* spellInfo);
     uint32 OnPlayerDealDamage(Player* player, Unit* pVictim, uint32 damage, DamageEffectType damagetype);
+    float OnPlayerUpdateMaxPower(Player* player, uint32 power, float value);
+
+    /* Database - Forge */
+    void OnDatabaseTableLoad(std::string const& storeName);
     void OnPlayerReleasedGhost(Player* player);
 
     /* Vehicle */

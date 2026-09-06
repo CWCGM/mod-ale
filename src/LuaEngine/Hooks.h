@@ -89,7 +89,15 @@ namespace Hooks
         REGTYPE_TICKET,
         REGTYPE_SPELL,
         REGTYPE_ALL_CREATURE,
+        REGTYPE_DATABASE,
         REGTYPE_COUNT
+    };
+
+    enum DatabaseEvents
+    {
+        DATABASE_EVENT_ON_TABLE_LOAD    = 1,    // (event, table, store)
+
+        DATABASE_EVENT_COUNT
     };
 
     enum PacketEvents
@@ -238,6 +246,7 @@ namespace Hooks
         PLAYER_EVENT_ON_MODIFY_HEAL_RECEIVED                =     71,       // (event, player, target, heal, spellInfo) - Can return new heal amount
         PLAYER_EVENT_ON_DEAL_DAMAGE                         =     72,       // (event, player, target, damage, damagetype) - Can return new damage amount
         PLAYER_EVENT_ON_RELEASED_GHOST                      =     73,       // (event, player)
+        PLAYER_EVENT_ON_UPDATE_MAX_POWER                    =     74,       // (event, player, power, value) - Can return new max power value
 
         PLAYER_EVENT_COUNT
     };
