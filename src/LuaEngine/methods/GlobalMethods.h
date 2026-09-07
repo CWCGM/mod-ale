@@ -392,10 +392,36 @@ namespace LuaGlobalFunctions
         return 2;
     }
 
+    /**
+     * Returns the [ItemTemplate] with the given entry, or nil.
+     *
+     * The template is the LIVE one: a setter called on it writes straight
+     * into the store the core reads from.
+     *
+     * @param uint32 entry
+     * @return [ItemTemplate] itemTemplate
+     */
     int GetItemTemplate(lua_State* L)
     {
         uint32 entry = ALE::CHECKVAL<uint32>(L, 1);
         ALE::Push(L, eObjectMgr->GetItemTemplate(entry));
+        return 1;
+    }
+
+    /**
+     * Returns the [CreatureTemplate] with the given entry, or nil.
+     *
+     * The template is the LIVE one, but a creature copies what it needs when
+     * it is created: a change reaches the ones spawned AFTER it, not those
+     * already on their feet.
+     *
+     * @param uint32 entry
+     * @return [CreatureTemplate] creatureTemplate
+     */
+    int GetCreatureTemplate(lua_State* L)
+    {
+        uint32 entry = ALE::CHECKVAL<uint32>(L, 1);
+        ALE::Push(L, eObjectMgr->GetCreatureTemplate(entry));
         return 1;
     }
 

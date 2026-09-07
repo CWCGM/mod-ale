@@ -18,7 +18,9 @@
  * reaches the ones spawned AFTER it, not those already on their feet.
  *
  * The client keeps its own creature cache, so a player who has already seen
- * one keeps the old name and subname until their cache is cleared.
+ * one keeps the old name and subname until their cache is cleared. The
+ * SERVER side answer to that query is a packet the core builds once at load;
+ * SetName and SetSubName rebuild it, so a fresh client is told the truth.
  *
  * Inherits all methods from: none
  */
@@ -50,6 +52,10 @@ namespace LuaCreatureTemplate
     int SetName(lua_State* L, CreatureTemplate* creatureTemplate)
     {
         creatureTemplate->Name = ALE::CHECKVAL<std::string>(L, 2);
+
+        // The reply to the client's creature query is built once at load and
+        // cached. Without this it would keep answering the old name.
+        creatureTemplate->InitializeQueryData();
         return 0;
     }
 
@@ -70,6 +76,7 @@ namespace LuaCreatureTemplate
     int SetSubName(lua_State* L, CreatureTemplate* creatureTemplate)
     {
         creatureTemplate->SubName = ALE::CHECKVAL<std::string>(L, 2);
+        creatureTemplate->InitializeQueryData();
         return 0;
     }
 

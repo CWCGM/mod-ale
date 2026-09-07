@@ -28,8 +28,9 @@ std::vector<DataDefinition> dataRegistry =
     REGISTER_DBC(Spell,           SpellEntry,           sSpellStore),
     REGISTER_DBC(gtRegenMPPerSpt, GtRegenMPPerSptEntry, sGtRegenMPPerSptStore),
 
-    REGISTER_DB_INDEXED(item_template, ItemTemplate,     *sObjectMgr->GetItemTemplateStoreFast()),
-    REGISTER_DB_MAP    (trainer,       Trainer::Trainer,  sObjectMgr->GetTrainerStore()),
+    REGISTER_DB_INDEXED(item_template,     ItemTemplate,      *sObjectMgr->GetItemTemplateStoreFast()),
+    REGISTER_DB_MAP    (creature_template, CreatureTemplate,  *sObjectMgr->GetCreatureTemplates()),
+    REGISTER_DB_MAP    (trainer,           Trainer::Trainer,   sObjectMgr->GetTrainerStore()),
 };
 
 int32 FindDataTableId(std::string const& name)

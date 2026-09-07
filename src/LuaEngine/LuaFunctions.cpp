@@ -45,6 +45,7 @@ extern "C"
 #include "BattleGroundMethods.h"
 #include "ChatHandlerMethods.h"
 #include "AchievementMethods.h"
+#include "Data/CreatureTemplateMethods.h"
 #include "Data/GemPropertiesEntryMethods.h"
 #include "Data/GtRegenMPPerSptEntryMethods.h"
 #include "Data/ItemTemplateMethods.h"
@@ -130,6 +131,7 @@ luaL_Reg GlobalMethods[] =
     { "GetPlayerGUID", &LuaGlobalFunctions::GetPlayerGUID },
     { "GetItemGUID", &LuaGlobalFunctions::GetItemGUID },
     { "GetItemTemplate", &LuaGlobalFunctions::GetItemTemplate },
+    { "GetCreatureTemplate", &LuaGlobalFunctions::GetCreatureTemplate },
     { "GetPlayerClassLevelInfo", &LuaGlobalFunctions::GetPlayerClassLevelInfo },
     { "RegisterDataEvent", &LuaGlobalFunctions::RegisterDataEvent },
     { "GetObjectGUID", &LuaGlobalFunctions::GetObjectGUID },
@@ -1572,6 +1574,66 @@ ALERegister<Guild> GuildMethods[] =
     { NULL, NULL }
 };
 
+ALERegister<CreatureTemplate> CreatureTemplateMethods[] =
+{
+    { "GetEntry", &LuaCreatureTemplate::GetEntry },
+    { "GetName", &LuaCreatureTemplate::GetName },
+    { "SetName", &LuaCreatureTemplate::SetName },
+    { "GetSubName", &LuaCreatureTemplate::GetSubName },
+    { "SetSubName", &LuaCreatureTemplate::SetSubName },
+    { "GetMinLevel", &LuaCreatureTemplate::GetMinLevel },
+    { "SetMinLevel", &LuaCreatureTemplate::SetMinLevel },
+    { "GetMaxLevel", &LuaCreatureTemplate::GetMaxLevel },
+    { "SetMaxLevel", &LuaCreatureTemplate::SetMaxLevel },
+    { "GetFaction", &LuaCreatureTemplate::GetFaction },
+    { "SetFaction", &LuaCreatureTemplate::SetFaction },
+    { "GetNpcFlag", &LuaCreatureTemplate::GetNpcFlag },
+    { "SetNpcFlag", &LuaCreatureTemplate::SetNpcFlag },
+    { "GetUnitFlags", &LuaCreatureTemplate::GetUnitFlags },
+    { "SetUnitFlags", &LuaCreatureTemplate::SetUnitFlags },
+    { "GetRank", &LuaCreatureTemplate::GetRank },
+    { "SetRank", &LuaCreatureTemplate::SetRank },
+    { "GetType", &LuaCreatureTemplate::GetType },
+    { "SetType", &LuaCreatureTemplate::SetType },
+    { "GetFamily", &LuaCreatureTemplate::GetFamily },
+    { "SetFamily", &LuaCreatureTemplate::SetFamily },
+    { "GetUnitClass", &LuaCreatureTemplate::GetUnitClass },
+    { "SetUnitClass", &LuaCreatureTemplate::SetUnitClass },
+    { "GetModHealth", &LuaCreatureTemplate::GetModHealth },
+    { "SetModHealth", &LuaCreatureTemplate::SetModHealth },
+    { "GetModMana", &LuaCreatureTemplate::GetModMana },
+    { "SetModMana", &LuaCreatureTemplate::SetModMana },
+    { "GetModArmor", &LuaCreatureTemplate::GetModArmor },
+    { "SetModArmor", &LuaCreatureTemplate::SetModArmor },
+    { "GetModExperience", &LuaCreatureTemplate::GetModExperience },
+    { "SetModExperience", &LuaCreatureTemplate::SetModExperience },
+    { "GetDamageModifier", &LuaCreatureTemplate::GetDamageModifier },
+    { "SetDamageModifier", &LuaCreatureTemplate::SetDamageModifier },
+    { "GetBaseAttackTime", &LuaCreatureTemplate::GetBaseAttackTime },
+    { "SetBaseAttackTime", &LuaCreatureTemplate::SetBaseAttackTime },
+    { "GetRangeAttackTime", &LuaCreatureTemplate::GetRangeAttackTime },
+    { "SetRangeAttackTime", &LuaCreatureTemplate::SetRangeAttackTime },
+    { "GetLootId", &LuaCreatureTemplate::GetLootId },
+    { "SetLootId", &LuaCreatureTemplate::SetLootId },
+    { "GetMinGold", &LuaCreatureTemplate::GetMinGold },
+    { "SetMinGold", &LuaCreatureTemplate::SetMinGold },
+    { "GetMaxGold", &LuaCreatureTemplate::GetMaxGold },
+    { "SetMaxGold", &LuaCreatureTemplate::SetMaxGold },
+    { "GetSpeedWalk", &LuaCreatureTemplate::GetSpeedWalk },
+    { "SetSpeedWalk", &LuaCreatureTemplate::SetSpeedWalk },
+    { "GetSpeedRun", &LuaCreatureTemplate::GetSpeedRun },
+    { "SetSpeedRun", &LuaCreatureTemplate::SetSpeedRun },
+    { "GetRegenHealth", &LuaCreatureTemplate::GetRegenHealth },
+    { "SetRegenHealth", &LuaCreatureTemplate::SetRegenHealth },
+    { "GetFlagsExtra", &LuaCreatureTemplate::GetFlagsExtra },
+    { "SetFlagsExtra", &LuaCreatureTemplate::SetFlagsExtra },
+    { "GetAIName", &LuaCreatureTemplate::GetAIName },
+    { "GetMovementType", &LuaCreatureTemplate::GetMovementType },
+    { "SetMovementType", &LuaCreatureTemplate::SetMovementType },
+
+    { nullptr, nullptr }
+};
+
 ALERegister<GtRegenMPPerSptEntry> GtRegenMPPerSptEntryMethods[] =
 {
     { "GetRatio", &LuaGtRegenMPPerSptEntry::GetRatio },
@@ -2398,6 +2460,7 @@ void RegisterFunctions(ALE* E)
     ALETemplate<SpellEntry>::SetMethods(E, SpellEntryMethods);
 
     ALETemplate<CreatureTemplate>::Register(E, "CreatureTemplate");
+    ALETemplate<CreatureTemplate>::SetMethods(E, CreatureTemplateMethods);
 
     ALETemplate<Loot>::Register(E, "Loot");
     ALETemplate<Loot>::SetMethods(E, LootMethods);

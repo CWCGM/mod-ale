@@ -22,6 +22,21 @@ using namespace Hooks;
         return;\
     LOCK_ALE
 
+/*
+ * Relays the core's per-table signal.
+ *
+ * The core fires this once per data table, right after the last of its
+ * sources has been read - the .dbc file and the *_dbc table for a DBC store,
+ * the world database for the rest - so the rows are final and a script can
+ * patch them in memory before anything reads them.
+ *
+ * The handler is told WHICH table is ready, not handed it: the rows are
+ * reached through LookupEntry and ForEachEntry, which work the same here and
+ * anywhere else.
+ *
+ * Tables the registry does not know about are ignored: a script can only
+ * register on a named table, so there is nothing to call for the others.
+ */
 void ALE::OnDataTableLoad(std::string const& storeName)
 {
     // The core hands over the DBC file name, extension included. Scripts name
