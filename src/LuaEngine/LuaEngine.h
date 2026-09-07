@@ -256,7 +256,7 @@ public:
     BindingMap< EntryKey<Hooks::GossipEvents> >*        ItemGossipBindings;
     BindingMap< EntryKey<Hooks::GossipEvents> >*        PlayerGossipBindings;
     BindingMap< EntryKey<Hooks::InstanceEvents> >*      MapEventBindings;
-    BindingMap< EntryKey<Hooks::DatabaseEvents> >*     DatabaseEventBindings;
+    BindingMap< EntryKey<Hooks::DataEvents> >*     DataEventBindings;
     BindingMap< EntryKey<Hooks::InstanceEvents> >*      InstanceEventBindings;
     BindingMap< EventKey<Hooks::TicketEvents> >*        TicketEventBindings;
     BindingMap< EntryKey<Hooks::SpellEvents> >*         SpellEventBindings;
@@ -515,8 +515,8 @@ public:
     uint32 OnPlayerDealDamage(Player* player, Unit* pVictim, uint32 damage, DamageEffectType damagetype);
     float OnPlayerUpdateMaxPower(Player* player, uint32 power, float value);
 
-    /* Database - Forge */
-    void OnDatabaseTableLoad(std::string const& storeName);
+    /* Database */
+    void OnDataTableLoad(std::string const& storeName);
     void OnPlayerReleasedGhost(Player* player);
 
     /* Vehicle */

@@ -1183,12 +1183,12 @@ public:
 
     void OnAfterLoadDBCStore(std::string const& storeName) override
     {
-        sALE->OnDatabaseTableLoad(storeName);
+        sALE->OnDataTableLoad(storeName);
     }
 
     void OnAfterLoadDataTable(std::string const& tableName) override
     {
-        sALE->OnDatabaseTableLoad(tableName);
+        sALE->OnDataTableLoad(tableName);
     }
 
     void OnBeforeWorldInitialized() override

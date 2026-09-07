@@ -89,15 +89,15 @@ namespace Hooks
         REGTYPE_TICKET,
         REGTYPE_SPELL,
         REGTYPE_ALL_CREATURE,
-        REGTYPE_DATABASE,
+        REGTYPE_DATA,
         REGTYPE_COUNT
     };
 
-    enum DatabaseEvents
+    enum DataEvents
     {
-        DATABASE_EVENT_ON_TABLE_LOAD    = 1,    // (event, table, store)
+        DATA_EVENT_ON_TABLE_LOAD    = 1,    // (event, table)
 
-        DATABASE_EVENT_COUNT
+        DATA_EVENT_COUNT
     };
 
     enum PacketEvents

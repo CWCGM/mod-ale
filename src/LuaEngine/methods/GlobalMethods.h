@@ -8,13 +8,12 @@
 #define GLOBALMETHODS_H
 
 #include "BindingMap.h"
-#include "ALEDBCRegistry.h"
+#include "ALEDataRegistry.h"
 
 #include "BanMgr.h"
 #include "GameTime.h"
 #include "SharedDefines.h"
 #include "OutdoorPvPMgr.h"
-#include "ForgeRegistry.h"
 #include "../../../../src/server/scripts/OutdoorPvP/OutdoorPvPNA.h"
 
 
@@ -1232,9 +1231,9 @@ namespace LuaGlobalFunctions
      * Registers a handler for a data store event, keyed by table name.
      *
      * <pre>
-     * enum DatabaseEvents
+     * enum DataEvents
      * {
-     *     ON_CUSTOM_DATABASE_TABLE_LOAD = 1,   // (event, table, store)
+     *     ON_DATA_TABLE_LOAD = 1,   // (event, table)
      * };
      * </pre>
      *
@@ -1243,7 +1242,7 @@ namespace LuaGlobalFunctions
      * @param function handler
      * @param uint32 shots = 0 : how many times to call, 0 for infinite
      */
-    int RegisterDatabaseEvent(lua_State* L)
+    int RegisterDataEvent(lua_State* L)
     {
         uint32 ev = ALE::CHECKVAL<uint32>(L, 1);
         std::string table = ALE::CHECKVAL<std::string>(L, 2);
@@ -1252,8 +1251,8 @@ namespace LuaGlobalFunctions
 
         // Named rather than numbered, so a typo says which table is unknown
         // instead of silently registering on nothing.
-        Forge::TableInfo const* info = Forge::FindTable(table);
-        if (!info)
+        int32 tableId = FindDataTableId(table);
+        if (tableId < 0)
         {
             luaL_argerror(L, 2, "unknown data table");
             return 0;
@@ -1267,7 +1266,7 @@ namespace LuaGlobalFunctions
             return 0;
         }
 
-        return ALE::GetALE(L)->Register(L, Hooks::REGTYPE_DATABASE, info->id,
+        return ALE::GetALE(L)->Register(L, Hooks::REGTYPE_DATA, uint32(tableId),
             ObjectGuid(), 0, ev, functionRef, shots);
     }
 
@@ -3647,34 +3646,99 @@ namespace LuaGlobalFunctions
     }
   
     /**
-     * Returns an entry from the specified DBC (DatabaseClient) store.
+     * Returns one row of a data table, or nil when the table holds no such id.
      *
-     * This function looks up an entry in a DBC file by name and ID, and pushes it onto the Lua stack.
+     * The table is named, and the name is case insensitive. Both kinds of
+     * table answer here: a DBC store such as "Spell", and a world database
+     * table such as "item_template". Which one it is changes nothing for the
+     * caller.
      *
-     * @param string dbcName : The name of the DBC store (e.g., "ItemDisplayInfo")
-     * @param uint32 id : The ID used to look up within the specified DBC store
+     * The row is the LIVE one, not a copy: a setter called on it writes
+     * straight into the store the core reads from.
      *
-     * @return [DBCStore] store : The requested DBC store instance
+     *     local item = LookupEntry("item_template", 12345)
+     *     item:SetRequiredLevel(0)
+     *
+     * @param string table : name of the data table, e.g. "Spell"
+     * @param uint32 id : row id within that table
+     *
+     * @return row : the row, as its own Lua type
      */
     int LookupEntry(lua_State* L)
     {
-        const char* dbcName = ALE::CHECKVAL<const char*>(L, 1);
+        const char* table = ALE::CHECKVAL<const char*>(L, 1);
         uint32 id = ALE::CHECKVAL<uint32>(L, 2);
 
-        for (const auto& dbc : dbcRegistry)
+        // Named rather than numbered, so a typo says which table is unknown
+        // instead of silently returning nothing.
+        DataDefinition const* definition = FindDataTable(table);
+        if (!definition)
+            return luaL_error(L, "Invalid data table name: %s", table);
+
+        void const* row = definition->lookup(id);
+        if (!row)
+            return 0;
+
+        definition->push(L, row);
+        return 1;
+    }
+
+    /**
+     * Calls the handler once per row of a data table, and returns how many
+     * rows it saw.
+     *
+     * The handler receives one row, live. Returning false from it stops the
+     * walk, so a script that has found what it came for does not pay for the
+     * rest of the table.
+     *
+     *     ForEachEntry("item_template", function(item)
+     *         item:SetRequiredLevel(0)
+     *     end)
+     *
+     * @param string table : name of the data table
+     * @param function handler : receives one row, may return false to stop
+     *
+     * @return uint32 visited
+     */
+    int ForEachEntry(lua_State* L)
+    {
+        const char* table = ALE::CHECKVAL<const char*>(L, 1);
+        luaL_checktype(L, 2, LUA_TFUNCTION);
+
+        DataDefinition const* definition = FindDataTable(table);
+        if (!definition)
+            return luaL_error(L, "Invalid data table name: %s", table);
+
+        if (!definition->forEach)
+            return luaL_error(L, "Data table %s cannot be walked", table);
+
+        uint32 visited = 0;
+
+        definition->forEach([&](void const* row) -> bool
         {
-            if (dbc.name == dbcName)
+            lua_pushvalue(L, 2);
+            definition->push(L, row);
+
+            // pcall rather than call: one faulty row must not abort the walk
+            // halfway through, leaving the table half patched.
+            if (lua_pcall(L, 1, 1, 0) != 0)
             {
-                const void* entry = dbc.lookupFunction(id);
-                if (!entry)
-                    return 0;
-
-                dbc.pushFunction(L, entry);
-                return 1;
+                ALE_LOG_ERROR("[ALE]: ForEachEntry on `{}` failed: {}", definition->name, lua_tostring(L, -1));
+                lua_pop(L, 1);
+                return true;
             }
-        }
 
-        return luaL_error(L, "Invalid DBC name: %s", dbcName);
+            // Only an explicit false stops the walk; a handler that returns
+            // nothing is the common case and must go on.
+            bool const carryOn = lua_isnil(L, -1) || lua_toboolean(L, -1) != 0;
+            lua_pop(L, 1);
+
+            ++visited;
+            return carryOn;
+        });
+
+        ALE::Push(L, visited);
+        return 1;
     }
 }
 #endif
